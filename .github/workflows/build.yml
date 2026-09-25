@@ -24,13 +24,23 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install markdown
+      - run: pip install markdown pillow
+      - name: Шрифт Oswald для обложек
+        run: |
+          mkdir -p fonts
+          curl -sSL -o fonts/Oswald.ttf "https://raw.githubusercontent.com/google/fonts/main/ofl/oswald/Oswald%5Bwght%5D.ttf" || true
       - name: Сборка сайта
         env:
           FEED_URL: ${{ vars.FEED_URL }}
           SHEET_CSV_URL: ${{ vars.SHEET_CSV_URL }}
           BASE_URL: ${{ vars.BASE_URL || 'https://kifakifakefidron-tech.github.io/site-creating' }}
-        run: python build.py
+        run: |
+          python build.py
+          python tilda_csv.py
+          echo '### Отчёт сборки' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat dist/build-report.json >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

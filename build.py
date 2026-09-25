@@ -282,11 +282,13 @@ def merge(feed, sheet):
     return feed + extra
 
 def canon_zhk(s):
+    s = (s or "").replace("ё", "е").replace("Ё", "Е")
     # очереди («Самолёт 6», «Акварели 2») оставляем — это разные дома с разными ценами
     s = re.sub(r"^\s*ЖК\s*", "", s or "", flags=re.I).strip(" «»\"")
     return nice_case(s)
 
 def canon_district(s):
+    s = (s or "").replace("ё", "е").replace("Ё", "Е")
     s = re.sub(r"^\s*(район|р-н|мкр\.?|микрорайон)\s*", "", s or "", flags=re.I).strip()
     s = s.replace("П.", "п. ").replace("Х.", "х. ")
     return nice_case(s)
