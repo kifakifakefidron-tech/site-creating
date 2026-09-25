@@ -167,7 +167,7 @@ def main():
     # страница-подсказка со ссылкой на файл
     lst = "".join(f"<li>{build.esc(r[2])} <span class='muted'>— {MAIN}/{FEED_PATH}/{r[1]}</span></li>" for r in rows)
     page = build.layout("Статьи для Тильды — файл импорта", "", "/tilda/",
-                        f"<h1>Статьи для Тильда Потоков</h1><p><a class='pill' href='/tilda/posts.csv' download>Скачать posts.csv</a></p>"
+                        f'<h1>Статьи для Тильда Потоков</h1><p><a class="pill" href="/tilda/posts.csv" download>Скачать posts.csv</a></p>'
                         f"<p>Тильда → Потоки → поток → меню «…» → «Импортировать посты из CSV». Повторная загрузка обновляет посты, дублей не будет.</p><ol>{lst}</ol>",
                         noindex=True)
     build.write("/tilda/", page, index=False)
