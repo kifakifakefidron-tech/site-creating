@@ -65,7 +65,7 @@ def nice_case(s):
         return s
     out = s.lower()
     out = re.sub(r"(^|[\s\-«\"(/])(\S)", lambda m: m.group(1) + m.group(2).upper(), out)
-    for abbr in ["ЖК", "ФМР", "ЧМР", "ЦМР", "ЮМР", "КМР", "ГМР", "СМР", "ККБ", "РИП", "МЖК"]:
+    for abbr in ["ЖК", "ФМР", "ЧМР", "ЦМР", "ЮМР", "КМР", "ГМР", "СМР", "ПМР", "ККБ", "РИП", "МЖК"]:
         out = re.sub(r"\b" + abbr.capitalize() + r"\b", abbr, out)
     return out
 
@@ -289,6 +289,35 @@ def canon_zhk(s):
     # очереди («Самолёт 6», «Акварели 2») оставляем — это разные дома с разными ценами
     s = re.sub(r"^\s*ЖК\s*", "", s or "", flags=re.I).strip(" «»\"")
     return nice_case(s)
+
+# как районы называют в поиске (сокращения из фида -> полное название для заголовков)
+DISTRICT_FULL = {
+    "ФМР": "Фестивальный микрорайон (ФМР)", "ЧМР": "Черёмушки (ЧМР)", "ЦМР": "Центральный район (ЦМР)",
+    "ЮМР": "Юбилейный микрорайон (ЮМР)", "КМР": "Комсомольский микрорайон (КМР)", "ГМР": "Гидрострой (ГМР)",
+    "СМР": "Славянский микрорайон (СМР)", "ПМР": "Пашковский микрорайон (ПМР)", "РИП": "посёлок Российский (РИП)",
+    "Восточка": "Восточно-Кругликовский (Восточка)", "Музыкальный": "Музыкальный микрорайон",
+    "Молодежный": "микрорайон Молодёжный", "П. Краснодарский": "посёлок Краснодарский",
+    "П. Российский": "посёлок Российский", "П. Южный": "посёлок Южный", "П. Северный": "посёлок Северный",
+    "Б. Западный Обход/Энка": "Большой Западный обход / Энка", "Западный Обход": "Западный обход",
+    "Петра Метальникова": "улица Петра Метальникова", "Знаменский": "посёлок Знаменский",
+}
+
+def district_full(n):
+    return DISTRICT_FULL.get(n, n)
+
+DISTRICT_IN = {
+    "ФМР": "в Фестивальном микрорайоне (ФМР)", "ЧМР": "в Черёмушках (ЧМР)", "ЦМР": "в Центральном районе (ЦМР)",
+    "ЮМР": "в Юбилейном микрорайоне (ЮМР)", "КМР": "в Комсомольском микрорайоне (КМР)", "ГМР": "на Гидрострое (ГМР)",
+    "СМР": "в Славянском микрорайоне (СМР)", "ПМР": "в Пашковском микрорайоне (ПМР)", "РИП": "в посёлке Российском (РИП)",
+    "Восточка": "на Восточке (Восточно-Кругликовский)", "Музыкальный": "в Музыкальном микрорайоне",
+    "Молодежный": "в Молодёжном", "П. Краснодарский": "в посёлке Краснодарском", "П. Российский": "в посёлке Российском",
+    "П. Южный": "в посёлке Южном", "П. Северный": "в посёлке Северном", "Западный Обход": "на Западном обходе",
+    "Б. Западный Обход/Энка": "на Большом Западном обходе / в Энке", "Петра Метальникова": "на улице Петра Метальникова",
+    "Знаменский": "в посёлке Знаменском", "Немецкая Деревня": "в Немецкой деревне", "Новая Адыгея": "в Новой Адыгее",
+}
+
+def district_in(n):
+    return DISTRICT_IN.get(n, f"в районе «{n}»")
 
 def canon_district(s):
     s = (s or "").replace("ё", "е").replace("Ё", "Е")
@@ -573,7 +602,41 @@ CTA = f"""<div class="cta">
 # ----------------------------------------------------------------- запись
 PAGES = []  # (path, lastmod, priority)
 
+def apply_override(path, content):
+    """content/pages/<путь через __>.md — ручная/авторская доработка любой страницы под поисковый запрос:
+    title, description, h1 во frontmatter + текст, который встаёт после вводного абзаца."""
+    key = path.strip("/").replace("/", "__") or "index"
+    f = os.path.join(ROOT, "content", "pages", key + ".md")
+    if not os.path.exists(f):
+        return content, False
+    meta, body = read_md(f)
+    if meta.get("title"):
+        t = esc(meta["title"])
+        content = re.sub(r"<title>.*?</title>", f"<title>{t}</title>", content, count=1, flags=re.S)
+        content = re.sub(r'(<meta property="og:title" content=")[^"]*', lambda m: m.group(1) + t, content, count=1)
+    if meta.get("description"):
+        d = esc(meta["description"])
+        content = re.sub(r'(<meta name="description" content=")[^"]*', lambda m: m.group(1) + d, content, count=1)
+        content = re.sub(r'(<meta property="og:description" content=")[^"]*', lambda m: m.group(1) + d, content, count=1)
+    if meta.get("h1"):
+        content = re.sub(r"<h1>.*?</h1>", f"<h1>{esc(meta['h1'])}</h1>", content, count=1, flags=re.S)
+    if body.strip():
+        block = '<section class="editorial">' + md_to_html(body) + "</section>"
+        # после вводного блока (lead) или сразу после h1
+        m = re.search(r'<div class="lead">.*?</div>|<p class=.lead.>.*?</p>', content, re.S)
+        if m:
+            content = content[:m.end()] + "\n" + block + content[m.end():]
+        else:
+            content = re.sub(r"(</h1>)", r"\1\n" + block.replace("\\", "\\\\"), content, count=1)
+    # страница с авторским текстом индексируется, даже если объектов мало
+    content = content.replace('<meta name="robots" content="noindex, follow">', "")
+    return content, True
+
+
 def write(path, content, lastmod=None, priority="0.6", index=True):
+    content, overridden = apply_override(path, content)
+    if overridden and path.endswith("/") and not index:
+        index = True
     full = os.path.join(DIST, path.strip("/"), "index.html") if path.endswith("/") else os.path.join(DIST, path.strip("/"))
     os.makedirs(os.path.dirname(full), exist_ok=True)
     if PREFIX:
@@ -615,8 +678,13 @@ def build_group_pages(objs, arts, field, kind, list_path, list_title, place_fmt,
         place = place_fmt(name)
         ed = editorial.get(slug)
         noindex = s["n"] < MIN_COMBO and not ed
-        title = f"{'Квартиры в ЖК ' + name if kind == 'zhk' else 'Квартиры: ' + place} на вторичке — {s['n']} {plural(s['n'], 'предложение', 'предложения', 'предложений')}{', от ' + mln(s['pmin']) if s['pmin'] else ''} | СТРЕЛЫ"
-        h1 = f"Квартиры в ЖК {name} на вторичном рынке" if kind == "zhk" else f"Вторичка: {place}"
+        cnt = f"{s['n']} {plural(s['n'], 'предложение', 'предложения', 'предложений')}{', от ' + mln(s['pmin']) if s['pmin'] else ''}"
+        if kind == "zhk":
+            title = f"Купить квартиру в ЖК {name} (Краснодар) на вторичке — {cnt} | СТРЕЛЫ"
+            h1 = f"Квартиры в ЖК {name} на вторичном рынке"
+        else:
+            title = f"Купить квартиру: {district_full(name)}, Краснодар — вторичка, {cnt} | СТРЕЛЫ"
+            h1 = f"Квартиры на вторичке — {district_full(name)}"
         desc = (f"{s['n']} {plural(s['n'], 'объект', 'объекта', 'объектов')} на вторичном рынке — {place}, Краснодар. "
                 f"{'Цены от ' + mln(s['pmin']) + '. ' if s['pmin'] else ''}Фото, этажи, состояние, PDF-презентации для клиентов.")
         districts = sorted({o["district_name"] for o in g if o.get("district_name")}) if kind == "zhk" else []
@@ -659,12 +727,12 @@ def build_group_pages(objs, arts, field, kind, list_path, list_title, place_fmt,
             ts = stats(tg)
             tname = TYPES[t]
             p = f"{base}{t}/"
-            ttl = f"{tname[0]} в {'ЖК ' + name if kind == 'zhk' else place} — {ts['n']} на вторичке{', от ' + mln(ts['pmin']) if ts['pmin'] else ''} | СТРЕЛЫ"
-            h = f"{tname[0]} в {'ЖК ' + name if kind == 'zhk' else place} на вторичке"
-            d = f"{ts['n']} {tname[3] if ts['n'] >= 5 else plural(ts['n'], tname[1], tname[1], tname[3])} — {('ЖК ' + name) if kind == 'zhk' else place}, Краснодар. {'От ' + mln(ts['pmin']) + '. ' if ts['pmin'] else ''}Фото, этаж, состояние, презентации."
+            ttl = f"{tname[0]} {place}, Краснодар — {ts['n']} на вторичке{', от ' + mln(ts['pmin']) if ts['pmin'] else ''} | СТРЕЛЫ"
+            h = f"{tname[0]} {place} на вторичке"
+            d = f"{tname[0]} {place}, Краснодар: {ts['n']} {plural(ts['n'], 'предложение', 'предложения', 'предложений')} на вторичке. {'От ' + mln(ts['pmin']) + '. ' if ts['pmin'] else ''}Фото, этаж, состояние, презентации."
             qa2 = auto_faq(place, ts, p)[:2]
             b = f"""<h1>{esc(h)}</h1>
-<div class="lead">{auto_text(p, ('в ЖК ' + name) if kind == 'zhk' else place, ts, tname[3])}</div>
+<div class="lead">{auto_text(p, place, ts, tname[3])}</div>
 {cards(tg)}
 {CTA}
 <p>Все объекты — <a href="{base}">{'ЖК ' + esc(name) if kind == 'zhk' else esc(name)}</a> · <a href="/tip/{t}/">{tname[0].lower()} во всём Краснодаре</a></p>
@@ -698,7 +766,7 @@ def build_type_pages(objs, arts):
                 bs = stats(bg)
                 bh = f"{names[0]} до {b // 1_000_000} млн ₽ в Краснодаре — вторичка"
                 write(bp, layout(f"{bh}: {bs['n']} вариантов | СТРЕЛЫ",
-                                 f"{bs['n']} {plural(bs['n'], names[1], names[1], names[3])} до {b // 1_000_000} млн ₽ на вторичке Краснодара. Районы, ЖК, фото, презентации.",
+                                 f"{names[0]} до {b // 1_000_000} млн ₽ на вторичке Краснодара: {bs['n']} {plural(bs['n'], 'предложение', 'предложения', 'предложений')}. Районы, ЖК, фото, презентации.",
                                  bp, f"<h1>{esc(bh)}</h1><div class='lead'>{auto_text(bp, f'в бюджете до {b // 1_000_000} млн ₽', bs, names[3])}</div>{cards(bg)}{CTA}<p><a href='{p}'>Все {names[0].lower()}</a></p>",
                                  [(names[0], p), (f"до {b // 1_000_000} млн", None)], itemlist_ld(bg, bh)), priority="0.7")
         by_z = defaultdict(int)
@@ -718,7 +786,7 @@ def build_type_pages(objs, arts):
 {faq_html(qa)}
 {related_articles(arts)}"""
         write(p, layout(f"{h} — {s['n']} предложений{', от ' + mln(s['pmin']) if s['pmin'] else ''} | СТРЕЛЫ",
-                        f"{s['n']} {plural(s['n'], names[1], names[1], names[3])} на вторичке Краснодара{', от ' + mln(s['pmin']) if s['pmin'] else ''}. Фильтр по ЖК и районам, PDF-презентации для клиентов.",
+                        f"{names[0]} на вторичке Краснодара: {s['n']} {plural(s['n'], 'предложение', 'предложения', 'предложений')}{', от ' + mln(s['pmin']) if s['pmin'] else ''}. Фильтр по ЖК и районам, PDF-презентации для клиентов.",
                         p, body, [(names[0], None)], itemlist_ld(g, h) + faq_ld(qa)), priority="0.8")
 
 def build_articles(arts):
@@ -794,7 +862,7 @@ def main():
     zhk_rows = build_group_pages(objs, arts, "zhk_name", "zhk", "/zhk/", "ЖК",
                                  lambda n: f"в ЖК {n}", load_editorial("zhk"))
     d_rows = build_group_pages(objs, arts, "district_name", "rayony", "/rayony/", "Районы",
-                               lambda n: f"район {n}", load_editorial("rayon"))
+                               lambda n: district_in(n), load_editorial("rayon"))
     build_type_pages(objs, arts)
     build_articles(arts)
     build_home(objs, arts, zhk_rows, d_rows)
