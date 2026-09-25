@@ -27,6 +27,7 @@ PREFIX = re.sub(r"^https?://[^/]+", "", BASE)   # для адреса вида g
 MAIN = "https://arrowsrealty.ru"
 BRAND = "СТРЕЛЫ"
 PHONE = "+7 (961) 857-17-72"
+OPERATOR = "Оператор персональных данных: Никифоров Артём Андреевич, ИНН 232203372940."
 TG = "https://t.me/ArtemRielty"
 WA = "https://wa.me/message/5MQUMAFEHPL3B1"
 MIN_COMBO = int(os.environ.get("MIN_COMBO", "2"))   # минимум объектов для страницы-комбинации
@@ -49,16 +50,18 @@ def metrika_html():
     cid = metrika_id()
     if not cid:
         return ""
+    # Счётчик грузится только после «Принять» в cookie-баннере (152-ФЗ). Без <noscript>: он ставил бы cookie без согласия.
     return f"""<script>
+window.arwLoadStats=function(){{if(window.arwStats)return;window.arwStats=1;
 (function(m,e,t,r,i,k,a){{m[i]=m[i]||function(){{(m[i].a=m[i].a||[]).push(arguments)}};m[i].l=1*new Date();
 for(var j=0;j<document.scripts.length;j++){{if(document.scripts[j].src===r){{return;}}}}
 k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)}})
 (window,document,"script","https://mc.yandex.ru/metrika/tag.js","ym");
 ym({cid},"init",{{clickmap:true,trackLinks:true,accurateTrackBounce:true}});
 document.addEventListener("click",function(e){{var a=e.target.closest&&e.target.closest("a");
-if(a&&/(^|\.)arrowsrealty\.ru$/.test(a.hostname)){{ym({cid},"reachGoal","to_main");}}}});
-</script>
-<noscript><div><img src="https://mc.yandex.ru/watch/{cid}" style="position:absolute;left:-9999px;" alt=""></div></noscript>"""
+if(a&&/(^|\.)arrowsrealty\.ru$/.test(a.hostname)){{ym({cid},"reachGoal","to_main");}}}});}};
+if(window.arwConsent==="yes")window.arwLoadStats();
+</script>"""
 
 
 def logo_html():
@@ -490,14 +493,19 @@ def layout(title, description, path, body, crumbs=None, jsonld=None, noindex=Fal
     <p><a href="{MAIN}">arrowsrealty.ru</a> · <a href="{MAIN}/sotrudnichestvo">Сотрудничество</a> · <a href="{MAIN}/calculator">Ипотечный калькулятор</a> · <a href="tel:{re.sub(r'[^+0-9]', '', PHONE)}">{PHONE}</a> · <a href="{TG}">Telegram</a> · <a href="{WA}">WhatsApp</a></p>
     <p class="muted">Цены и наличие объектов меняются ежедневно — уточняйте актуальность перед показом. Обновлено {TODAY.strftime('%d.%m.%Y')}.</p>
     <p class="muted">Информация на сайте носит справочный характер и не является публичной офертой (ст. 437 ГК РФ). Статьи не являются юридической или финансовой консультацией.</p>
-    <p class="muted">Сайт использует cookie и сервис Яндекс Метрика для статистики посещений. <a href="{MAIN}/privacy">Политика обработки персональных данных</a>.</p>
+    <p class="muted"><a href="{MAIN}/privacy">Политика обработки персональных данных</a> · <a href="{MAIN}/cookie">Согласие на обработку cookie</a> · <a href="#cookie-settings" onclick="document.getElementById('cookie').hidden=false;return false">Настройки cookie</a>. {OPERATOR}</p>
   </div>
 </footer>
-<div class="cookie" id="cookie" hidden>
-  <span>Мы используем cookie и Яндекс Метрику, чтобы понимать, какие страницы полезны. Подробнее — в <a href="{MAIN}/privacy">политике обработки персональных данных</a>.</span>
-  <button type="button" onclick="try{{localStorage.setItem('ck','1')}}catch(e){{}};this.parentNode.hidden=true">Понятно</button>
+<div class="cookie" id="cookie" role="dialog" aria-label="Файлы cookie" hidden>
+  <span>Мы используем cookie и сервис статистики Яндекс Метрика, чтобы понимать, какие страницы полезны. Нажимая «Принять», вы даёте <a href="{MAIN}/cookie">согласие на обработку персональных данных</a>. Подробнее — в <a href="{MAIN}/privacy">Политике</a>.</span>
+  <span class="ck-b"><button type="button" class="ck-n" onclick="arwCk('no')">Отказаться</button><button type="button" onclick="arwCk('yes')">Принять</button></span>
 </div>
-<script>try{{if(!localStorage.getItem('ck'))document.getElementById('cookie').hidden=false}}catch(e){{document.getElementById('cookie').hidden=false}}</script>
+<script>
+(function(){{var v=null;try{{var s=JSON.parse(localStorage.getItem('arw_consent')||'null');if(s&&Date.now()-s.t<365*864e5)v=s.v}}catch(e){{}}
+window.arwConsent=v;if(!v)document.getElementById('cookie').hidden=false;
+window.arwCk=function(x){{var was=window.arwConsent==='yes';try{{localStorage.setItem('arw_consent',JSON.stringify({{v:x,t:Date.now()}}))}}catch(e){{}}
+window.arwConsent=x;document.getElementById('cookie').hidden=true;if(x==='yes'&&window.arwLoadStats)arwLoadStats();else if(was)location.reload()}};}})();
+</script>
 {METRIKA_HTML}
 </body>
 </html>"""
