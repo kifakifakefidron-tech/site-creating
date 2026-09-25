@@ -39,6 +39,9 @@ def logo_html():
     for fn in ["logo.svg", "logo.png", "logo.webp", "logo.jpg"]:
         if os.path.exists(os.path.join(ROOT, "static", fn)):
             return f'<img src="/{fn}" alt="СТРЕЛЫ — вторичная недвижимость Краснодара" height="40">'
+    if os.path.exists(os.path.join(ROOT, "static", "logo-arrows.png")):
+        return ('<img class="mark" src="/logo-arrows.png" alt="" width="58" height="41">'
+                '<b>СТРЕЛЫ</b><span class="sub">блог</span>')
     return ARROW_SVG + '<b>СТРЕЛЫ</b><span class="sub">блог</span>'
 
 
@@ -407,7 +410,7 @@ def layout(title, description, path, body, crumbs=None, jsonld=None, noindex=Fal
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23EEE6DB'/><path d='M14 38l12 12-12 12M28 38l12 12-12 12M30 50h56M72 36l14 14-14 14' fill='none' stroke='%23141414' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<link rel="icon" type="image/png" href="/favicon.png">
 {f'<script type="application/ld+json">{ld}</script>' if ld else ''}
 </head>
 <body>

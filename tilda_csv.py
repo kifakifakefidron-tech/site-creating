@@ -77,8 +77,15 @@ def make_cover(slug, title, kicker, path):
     d = ImageDraw.Draw(im)
     pad = 80
     small = load_font(26, 600)
-    arrow(d, pad, 70, pad + 58, INK, 2, 7)
-    d.text((pad + 78, 70), "С Т Р Е Л Ы", font=small, fill=INK, anchor="lm")
+    mark_path = os.path.join(ROOT, "static", "logo-arrows-full.png")
+    if os.path.exists(mark_path):
+        mark = Image.open(mark_path)
+        mark.thumbnail((80, 48), Image.LANCZOS)
+        im.paste(mark, (pad, 70 - mark.height // 2), mark)
+        d.text((pad + mark.width + 18, 70), "С Т Р Е Л Ы", font=small, fill=INK, anchor="lm")
+    else:
+        arrow(d, pad, 70, pad + 58, INK, 2, 7)
+        d.text((pad + 78, 70), "С Т Р Е Л Ы", font=small, fill=INK, anchor="lm")
     d.text((W - pad, 70), "ВТОРИЧКА · КРАСНОДАР", font=small, fill=MUTED, anchor="rm")
     # киккер
     kf = load_font(28, 700)

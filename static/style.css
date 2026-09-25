@@ -26,6 +26,7 @@ h3{font-size:20px;margin:1.5em 0 .4em}
 .logo b{font-family:Oswald,sans-serif;font-size:22px;letter-spacing:.18em}
 .logo .sub{font-family:Oswald,sans-serif;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-left:2px}
 .logo img{display:block;height:40px;width:auto}
+.logo img.mark{height:36px}
 .top nav{display:flex;gap:22px;align-items:center;flex-wrap:wrap}
 .top nav a{text-decoration:none;font-family:Oswald,sans-serif;text-transform:uppercase;letter-spacing:.12em;font-size:14px}
 
