@@ -21,6 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # история нужна для сводки: когда появилась каждая статья
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -34,9 +36,13 @@ jobs:
           FEED_URL: ${{ vars.FEED_URL }}
           SHEET_CSV_URL: ${{ vars.SHEET_CSV_URL }}
           BASE_URL: ${{ vars.BASE_URL || 'https://kifakifakefidron-tech.github.io/site-creating' }}
+          METRIKA_COUNTER: ${{ vars.METRIKA_COUNTER }}
+          METRIKA_TOKEN: ${{ secrets.METRIKA_TOKEN }}
+          MAIN_COUNTER: ${{ vars.MAIN_COUNTER || '99759284' }}
         run: |
           python build.py
           python tilda_csv.py
+          python stats.py || echo "сводка не собралась — сайт публикуем всё равно"
           echo '### Отчёт сборки' >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           cat dist/build-report.json >> $GITHUB_STEP_SUMMARY

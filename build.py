@@ -35,6 +35,23 @@ TODAY = dt.date.today()
 ARROW_SVG = ('<svg class="arrow" viewBox="0 0 64 12" aria-hidden="true"><path d="M1 2l4 4-4 4M5 2l4 4-4 4M6 6h56M56 1.5l6 4.5-6 4.5" '
              'fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>')
 
+def metrika_html():
+    """Счётчик Метрики блога + цель «to_main» на клики по ссылкам на arrowsrealty.ru."""
+    cid = os.environ.get("METRIKA_COUNTER", "").strip()
+    if not cid.isdigit():
+        return ""
+    return f"""<script>
+(function(m,e,t,r,i,k,a){{m[i]=m[i]||function(){{(m[i].a=m[i].a||[]).push(arguments)}};m[i].l=1*new Date();
+for(var j=0;j<document.scripts.length;j++){{if(document.scripts[j].src===r){{return;}}}}
+k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)}})
+(window,document,"script","https://mc.yandex.ru/metrika/tag.js","ym");
+ym({cid},"init",{{clickmap:true,trackLinks:true,accurateTrackBounce:true}});
+document.addEventListener("click",function(e){{var a=e.target.closest&&e.target.closest("a");
+if(a&&/(^|\.)arrowsrealty\.ru$/.test(a.hostname)){{ym({cid},"reachGoal","to_main");}}}});
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/{cid}" style="position:absolute;left:-9999px;" alt=""></div></noscript>"""
+
+
 def logo_html():
     for fn in ["logo.svg", "logo.png", "logo.webp", "logo.jpg"]:
         if os.path.exists(os.path.join(ROOT, "static", fn)):
@@ -421,6 +438,7 @@ def layout(title, description, path, body, crumbs=None, jsonld=None, noindex=Fal
         trail = [f'<a href="/">Блог</a>'] + [f'<a href="{p}">{esc(n)}</a>' if p else f"<span>{esc(n)}</span>" for n, p in crumbs]
         crumb_html = '<nav class="crumbs" aria-label="Хлебные крошки">' + ' <i>→</i> '.join(trail) + "</nav>"
     LOGO_HTML = logo_html()
+    METRIKA_HTML = metrika_html()
     return f"""<!doctype html>
 <html lang="ru">
 <head>
@@ -463,7 +481,7 @@ def layout(title, description, path, body, crumbs=None, jsonld=None, noindex=Fal
     <p class="muted">Цены и наличие объектов меняются ежедневно — уточняйте актуальность перед показом. Обновлено {TODAY.strftime('%d.%m.%Y')}.</p>
   </div>
 </footer>
-<!-- Yandex.Metrika: вставьте тот же счётчик 99759284, что на arrowsrealty.ru, если нужно общее отслеживание -->
+{METRIKA_HTML}
 </body>
 </html>"""
 
