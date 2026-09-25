@@ -35,10 +35,19 @@ TODAY = dt.date.today()
 ARROW_SVG = ('<svg class="arrow" viewBox="0 0 64 12" aria-hidden="true"><path d="M1 2l4 4-4 4M5 2l4 4-4 4M6 6h56M56 1.5l6 4.5-6 4.5" '
              'fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>')
 
+def metrika_id(raw=None):
+    """Номер счётчика: принимает и просто номер, и весь вставленный код счётчика Метрики."""
+    raw = (os.environ.get("METRIKA_COUNTER", "") if raw is None else raw).strip()
+    if raw.isdigit():
+        return raw
+    m = re.search(r"ym\(\s*(\d{5,})", raw) or re.search(r"watch/(\d{5,})", raw) or re.search(r"\b(\d{6,})\b", raw)
+    return m.group(1) if m else ""
+
+
 def metrika_html():
     """Счётчик Метрики блога + цель «to_main» на клики по ссылкам на arrowsrealty.ru."""
-    cid = os.environ.get("METRIKA_COUNTER", "").strip()
-    if not cid.isdigit():
+    cid = metrika_id()
+    if not cid:
         return ""
     return f"""<script>
 (function(m,e,t,r,i,k,a){{m[i]=m[i]||function(){{(m[i].a=m[i].a||[]).push(arguments)}};m[i].l=1*new Date();

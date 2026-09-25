@@ -16,7 +16,7 @@ import build
 ROOT = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(build.DIST, "stats")
 TOKEN = os.environ.get("METRIKA_TOKEN", "").strip()
-COUNTER = os.environ.get("METRIKA_COUNTER", "").strip()
+COUNTER = build.metrika_id()
 MAIN_COUNTER = os.environ.get("MAIN_COUNTER", "99759284").strip()
 MSK = dt.timezone(dt.timedelta(hours=3))
 TODAY = dt.datetime.now(MSK).date()
