@@ -1,0 +1,41 @@
+# Блог СТРЕЛЫ — blog.arrowsrealty.ru
+
+Автоматический сайт-спутник arrowsrealty.ru: страницы по ЖК, районам, типам квартир и бюджетам из фида Тильды + статьи.
+
+## Как это работает
+- **Каждый день в 06:00 МСК** GitHub забирает YML-фид Тильды и Google-таблицу, пересобирает все страницы и публикует. Проданные объекты исчезают, новые ЖК и районы появляются сами.
+- **Каждый день Claude** пишет 1–2 статьи и описание одного ЖК по правилам из `CONTENT_GUIDE.md`, берёт темы из `topics.md` и `zhk-queue.md`, коммитит — сайт пересобирается.
+- **По понедельникам и четвергам** в `tilda-drafts/` появляется готовая статья для основного сайта на Тильде (вставить вручную).
+
+## Разовая настройка
+1. Settings → Pages → Build and deployment → Source: **GitHub Actions**. Затем Actions → «Сборка и публикация блога» → **Run workflow**. Сайт откроется по адресу `https://kifakifakefidron-tech.github.io/site-creating/`.
+2. Фид уже прописан в `build.py`. Переменные (Settings → Secrets and variables → Actions → Variables) нужны только чтобы что-то поменять:
+   - `FEED_URL` — другая ссылка на YML-фид;
+   - `SHEET_CSV_URL` — Google-таблица в CSV (необязательно; строки без ссылки на карточку добавляются как отдельные объекты);
+   - `BASE_URL` — после подключения домена: `https://blog.arrowsrealty.ru`.
+3. DNS домена: запись **CNAME**, имя `blog`, значение `kifakifakefidron-tech.github.io`.
+4. Settings → Pages → Custom domain: `blog.arrowsrealty.ru`, включить **Enforce HTTPS**. Затем добавить переменную `BASE_URL` = `https://blog.arrowsrealty.ru` и перезапустить сборку.
+5. Яндекс Вебмастер: добавить `https://blog.arrowsrealty.ru`, подтвердить, добавить sitemap `https://blog.arrowsrealty.ru/sitemap.xml`.
+6. На arrowsrealty.ru: пункт меню «Новости» → переименовать в «Блог» и поставить ссылку на blog.arrowsrealty.ru.
+
+## Логотип
+Положите файл `static/logo.svg` (или `logo.png`) — он заменит текстовый логотип в шапке автоматически.
+
+## Что можно менять самим
+- `topics.md` — добавить свои темы (сверху — в первую очередь).
+- `content/articles/*.md` — поправить любую статью, пересборка автоматическая.
+- `content/zhk/<slug>.md` — своё описание ЖК (текст с показов ценнее любого сгенерированного).
+- `CONTENT_GUIDE.md` — правила для Claude.
+
+## Защита от «малополезного контента»
+- Страница ЖК/района с одним объектом и без авторского текста закрыта `noindex`.
+- Комбинации (ЖК × тип, тип × бюджет) создаются только при 2+ объектах (`MIN_COMBO`).
+- Тексты страниц собираются из реальных цифр базы, формулировки различаются.
+
+## Локальная сборка
+```
+pip install markdown
+FEED_FILE=tests/sample_feed.yml python3 build.py   # тестовые данные
+FEED_URL=... python3 build.py                        # реальный фид
+```
+Результат в `dist/`, отчёт — `dist/build-report.json`.

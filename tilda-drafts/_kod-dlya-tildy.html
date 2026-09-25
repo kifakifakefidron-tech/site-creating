@@ -1,0 +1,147 @@
+<!-- ============================================================
+  1) ГЛАВНАЯ СТРАНИЦА arrowsrealty.ru
+  Тильда → Настройки страницы «Главная» → Дополнительно →
+  «HTML-код для вставки внутрь HEAD». Вставить целиком.
+  ============================================================ -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "RealEstateAgent",
+      "@id": "https://arrowsrealty.ru/#org",
+      "name": "СТРЕЛЫ — сервис поиска недвижимости Краснодара",
+      "url": "https://arrowsrealty.ru/",
+      "logo": "https://static.tildacdn.com/tild3937-6665-4565-a231-393539343633/photo_1_2025-07-09_2.jpg",
+      "image": "https://static.tildacdn.com/tild6430-3335-4861-b663-383964386534/IMG_20240601_133204.jpg",
+      "telephone": "+7-961-857-17-72",
+      "areaServed": { "@type": "City", "name": "Краснодар" },
+      "address": { "@type": "PostalAddress", "addressLocality": "Краснодар", "addressCountry": "RU" },
+      "sameAs": [
+        "https://t.me/ArtemRielty",
+        "https://wa.me/message/5MQUMAFEHPL3B1"
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://arrowsrealty.ru/#website",
+      "url": "https://arrowsrealty.ru/",
+      "name": "СТРЕЛЫ",
+      "inLanguage": "ru-RU",
+      "publisher": { "@id": "https://arrowsrealty.ru/#org" }
+    }
+  ]
+}
+</script>
+
+
+<!-- ============================================================
+  2) СТАТЬЯ БЛОГА (шаблон). Вставлять в HEAD каждой статьи,
+  поменяв headline, description, url, datePublished и вопросы FAQ.
+  Пример заполнен для статьи про семейную ипотеку.
+  ============================================================ -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "Семейная ипотека на вторичку в Краснодаре в 2026 году: можно ли и что делать",
+      "description": "Дают ли семейную ипотеку на вторичное жильё в Краснодаре в 2026 году и какие варианты есть у семьи с детьми.",
+      "url": "https://arrowsrealty.ru/news/semeynaya-ipoteka-vtorichka-krasnodar",
+      "datePublished": "2026-09-25",
+      "dateModified": "2026-09-25",
+      "inLanguage": "ru-RU",
+      "author": { "@type": "Person", "name": "Артём" },
+      "publisher": { "@id": "https://arrowsrealty.ru/#org" },
+      "mainEntityOfPage": "https://arrowsrealty.ru/news/semeynaya-ipoteka-vtorichka-krasnodar"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Можно ли взять семейную ипотеку на вторичку в Краснодарском крае?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Только в населённых пунктах края, включённых в перечень городов с низким объёмом строительства. Сам Краснодар в такие города, как правило, не входит — сверяйтесь с актуальным списком ДОМ.РФ." }
+        },
+        {
+          "@type": "Question",
+          "name": "Можно ли использовать маткапитал при покупке вторички в Краснодаре?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Да, материнский капитал можно направить на покупку готового жилья, в том числе как первоначальный взнос по ипотеке." }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Главная", "item": "https://arrowsrealty.ru/" },
+        { "@type": "ListItem", "position": 2, "name": "Статьи", "item": "https://arrowsrealty.ru/news" },
+        { "@type": "ListItem", "position": 3, "name": "Семейная ипотека на вторичку в Краснодаре" }
+      ]
+    }
+  ]
+}
+</script>
+
+
+<!-- ============================================================
+  3) КАРТОЧКИ ОБЪЕКТОВ (tproduct) — запасной вариант.
+  Правильный путь: в Тильде у каждого товара заполнить вкладку SEO
+  (заголовок и описание). Пока не заполнено — этот скрипт делает
+  уникальный title и description из данных карточки.
+  Вставить: Настройки сайта → Ещё → «HTML-код для вставки внутрь HEAD».
+  Работает только на страницах /tproduct/, остальные не трогает.
+  ============================================================ -->
+<script>
+(function () {
+  if (location.pathname.indexOf('/tproduct/') !== 0) return;
+
+  function run() {
+    var h1 = document.querySelector('.t-store__prod-popup__name, .js-store-prod-name, h1');
+    var descEl = document.querySelector('.t-store__prod-popup__text, .js-store-prod-text');
+    if (!h1 || !descEl) return false;
+
+    var zhk = h1.textContent.trim();                       // «ЖК ДВИЖЕНИЕ»
+    var text = descEl.innerText || '';
+    var lines = text.split('\n').map(function (s) {
+      return s.replace(/[♟➳➵જ⁀➴📞]/g, '').trim();
+    }).filter(Boolean);
+
+    var type = (lines[0] || 'Квартира');                    // «СТУДИЯ» / «1К» ...
+    type = type.charAt(0) + type.slice(1).toLowerCase();
+
+    var area = (text.match(/(\d+[.,]?\d*)\s*м2/) || [])[1];
+    var floor = (text.match(/Этаж:\s*([\d\/]+)/i) || [])[1];
+    var district = (lines.find(function (l) { return /^РАЙОН/i.test(l); }) || '')
+      .replace(/^РАЙОН\s*/i, '');
+    var price = (text.match(/Цена\s*-\s*([\d\s]+)/i) || [])[1];
+
+    var zhkNice = zhk.replace(/^ЖК\s*/i, 'ЖК ').toLowerCase()
+      .replace(/(^|\s)\S/g, function (c) { return c.toUpperCase(); }).replace('Жк', 'ЖК');
+
+    var title = type + (area ? ' ' + area + ' м²' : '') + ', ' + zhkNice +
+      (district ? ', ' + district.charAt(0) + district.slice(1).toLowerCase() : '') +
+      ' — купить на вторичке в Краснодаре | СТРЕЛЫ';
+
+    var desc = 'Продаётся ' + type.toLowerCase() + (area ? ' ' + area + ' м²' : '') +
+      (floor ? ', этаж ' + floor : '') + ' в ' + zhkNice + ', Краснодар' +
+      (price ? '. Цена ' + price.trim() + ' тыс. ₽' : '') +
+      '. Фото, описание, PDF-презентация для клиента.';
+
+    document.title = title;
+    var m = document.querySelector('meta[name="description"]');
+    if (!m) { m = document.createElement('meta'); m.name = 'description'; document.head.appendChild(m); }
+    m.setAttribute('content', desc);
+
+    // alt у фото объекта
+    document.querySelectorAll('.t-slds__item img, .t-store__prod-popup__slider img').forEach(function (img, i) {
+      if (!img.getAttribute('alt')) img.setAttribute('alt', zhkNice + ', ' + type.toLowerCase() + ' — фото ' + (i + 1));
+    });
+    return true;
+  }
+
+  if (!run()) {
+    var tries = 0, t = setInterval(function () { if (run() || ++tries > 20) clearInterval(t); }, 300);
+  }
+})();
+</script>
