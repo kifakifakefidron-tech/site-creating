@@ -448,6 +448,8 @@ def layout(title, description, path, body, crumbs=None, jsonld=None, noindex=Fal
         crumb_html = '<nav class="crumbs" aria-label="Хлебные крошки">' + ' <i>→</i> '.join(trail) + "</nav>"
     LOGO_HTML = logo_html()
     METRIKA_HTML = metrika_html()
+    FONT_CSS = ('<style>@font-face{font-family:Oswald;src:url(' + PREFIX + '/fonts/Oswald.ttf) format("truetype");font-weight:200 700;font-display:swap}</style>'
+                if os.path.exists(os.path.join(ROOT, "fonts", "Oswald.ttf")) else "")
     return f"""<!doctype html>
 <html lang="ru">
 <head>
@@ -463,8 +465,7 @@ def layout(title, description, path, body, crumbs=None, jsonld=None, noindex=Fal
 <meta property="og:url" content="{url}">
 <meta property="og:locale" content="ru_RU">
 {f'<meta property="og:image" content="{esc(og_image)}">' if og_image else ''}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+{FONT_CSS}
 <link rel="stylesheet" href="/style.css">
 <link rel="icon" type="image/png" href="/favicon.png">
 {f'<script type="application/ld+json">{ld}</script>' if ld else ''}
@@ -488,8 +489,15 @@ def layout(title, description, path, body, crumbs=None, jsonld=None, noindex=Fal
     <p><b>СТРЕЛЫ</b> — сервис поиска вторичной недвижимости Краснодара для покупателей и риелторов.</p>
     <p><a href="{MAIN}">arrowsrealty.ru</a> · <a href="{MAIN}/sotrudnichestvo">Сотрудничество</a> · <a href="{MAIN}/calculator">Ипотечный калькулятор</a> · <a href="tel:{re.sub(r'[^+0-9]', '', PHONE)}">{PHONE}</a> · <a href="{TG}">Telegram</a> · <a href="{WA}">WhatsApp</a></p>
     <p class="muted">Цены и наличие объектов меняются ежедневно — уточняйте актуальность перед показом. Обновлено {TODAY.strftime('%d.%m.%Y')}.</p>
+    <p class="muted">Информация на сайте носит справочный характер и не является публичной офертой (ст. 437 ГК РФ). Статьи не являются юридической или финансовой консультацией.</p>
+    <p class="muted">Сайт использует cookie и сервис Яндекс Метрика для статистики посещений. <a href="{MAIN}/privacy">Политика обработки персональных данных</a>.</p>
   </div>
 </footer>
+<div class="cookie" id="cookie" hidden>
+  <span>Мы используем cookie и Яндекс Метрику, чтобы понимать, какие страницы полезны. Подробнее — в <a href="{MAIN}/privacy">политике обработки персональных данных</a>.</span>
+  <button type="button" onclick="try{{localStorage.setItem('ck','1')}}catch(e){{}};this.parentNode.hidden=true">Понятно</button>
+</div>
+<script>try{{if(!localStorage.getItem('ck'))document.getElementById('cookie').hidden=false}}catch(e){{document.getElementById('cookie').hidden=false}}</script>
 {METRIKA_HTML}
 </body>
 </html>"""
@@ -922,6 +930,9 @@ def main():
     os.makedirs(DIST)
     for fn in os.listdir(os.path.join(ROOT, "static")):
         shutil.copy(os.path.join(ROOT, "static", fn), os.path.join(DIST, fn))
+    if os.path.exists(os.path.join(ROOT, "fonts", "Oswald.ttf")):
+        os.makedirs(os.path.join(DIST, "fonts"), exist_ok=True)
+        shutil.copy(os.path.join(ROOT, "fonts", "Oswald.ttf"), os.path.join(DIST, "fonts", "Oswald.ttf"))
     objs = prepare(merge(load_feed(), load_sheet()))
     arts = load_articles()
     zhk_rows = build_group_pages(objs, arts, "zhk_name", "zhk", "/zhk/", "ЖК",
