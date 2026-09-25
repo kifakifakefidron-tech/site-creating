@@ -851,6 +851,44 @@ def build_meta():
                               f"<h1>Страница не найдена</h1><p>Возможно, объект уже продан. <a href='/'>На главную блога</a> или <a href='{MAIN}/#CATALOG'>в каталог</a>.</p>"),
           index=False)
 
+def norm_addr(a):
+    """Тот же ключ адреса, что в скрипте таблицы (normAddr_)."""
+    a = (a or "").lower()
+    a = re.sub(r"\(.*?\)", " ", a)
+    a = re.sub(r"(^|\s)сдан(?=\s|$)", " ", a)
+    a = re.sub(r"литер.*$", " ", a)
+    a = re.sub(r"^(ул\.?\s*|улица\s*)", "", a.strip())
+    a = a.replace("ё", "е")
+    a = re.sub(r"[,.]", " ", a)
+    return re.sub(r"\s+", " ", a).strip()
+
+
+def build_houses_csv(objs):
+    """Справочник домов из каталога Тильды: год, материал, координаты — для листа «Справочник домов»."""
+    houses = {}
+    for o in objs:
+        addr = o.get("address", "")
+        key = norm_addr(addr)
+        if not key:
+            continue
+        h = houses.setdefault(key, {"addr": re.sub(r"^ул\.?\s*", "", addr, flags=re.I), "zhk": o.get("zhk_name", ""), "year": "", "walls": "", "coords": ""})
+        if o.get("year") and not h["year"]:
+            h["year"] = o["year"]
+        if o.get("walls") and not h["walls"]:
+            h["walls"] = o["walls"]
+        if o.get("lat") and not h["coords"]:
+            h["coords"] = f"{o['lat']:.6f}, {o['lng']:.6f}"
+    os.makedirs(os.path.join(DIST, "tilda"), exist_ok=True)
+    buf = io.StringIO()
+    w = csv.writer(buf)
+    w.writerow(["Адрес (ключ)", "Адрес как в таблице", "ЖК", "Год постройки дома", "Материал стен", "Координаты", "Статус поиска"])
+    for k, h in sorted(houses.items()):
+        w.writerow([k, h["addr"], h["zhk"], h["year"], h["walls"], h["coords"], "из каталога Тильды" if h["coords"] else ""])
+    with open(os.path.join(DIST, "tilda", "houses.csv"), "w", encoding="utf-8") as f:
+        f.write(buf.getvalue())
+    return len(houses), sum(1 for h in houses.values() if h["year"]), sum(1 for h in houses.values() if h["coords"])
+
+
 def main():
     if os.path.isdir(DIST):
         shutil.rmtree(DIST)
@@ -867,9 +905,11 @@ def main():
     build_articles(arts)
     build_home(objs, arts, zhk_rows, d_rows)
     build_meta()
+    n_h, n_year, n_coords = build_houses_csv(objs)
     no_type = sum(1 for o in objs if not o.get("type"))
     report = {"date": TODAY.isoformat(), "objects": len(objs), "zhk": len(zhk_rows), "districts": len(d_rows),
               "articles": len(arts), "indexed_pages": len(PAGES), "objects_without_type": no_type,
+              "houses": n_h, "houses_with_year": n_year, "houses_with_coords": n_coords,
               "objects_without_zhk_or_district": sum(1 for o in objs if not o.get("zhk_name") and not o.get("district_name"))}
     with open(os.path.join(DIST, "build-report.json"), "w", encoding="utf-8") as f:
         json.dump(report, f, ensure_ascii=False, indent=1)
