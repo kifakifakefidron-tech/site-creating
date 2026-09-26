@@ -202,6 +202,9 @@ def text_summary(c, t, kind):
             lines.append("Топ статей за 7 дней:")
             for path, n in t["top_articles"][:5]:
                 lines.append(f"• {path} — {n}")
+    lines.append("")
+    lines.append(f"🔗 Блог: {build.BASE}/")
+    lines.append(f"📈 Страница отчёта: {build.BASE}/stats/")
     return "\n".join(lines)
 
 
