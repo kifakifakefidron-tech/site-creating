@@ -4,7 +4,7 @@
 Когда описание готово — отметьте `- [x]`. Актуальный список с количеством объектов: https://blog.arrowsrealty.ru/zhk/
 
 - [x] Ракурс (rakurs)
-- [ ] Лучший (luchshii)
+- [x] Лучший (luchshii)
 - [ ] Светлоград (svetlograd)
 - [ ] Свобода (svoboda)
 - [ ] Акварели 2 (akvareli-2)
