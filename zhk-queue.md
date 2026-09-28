@@ -5,7 +5,7 @@
 
 - [x] Ракурс (rakurs)
 - [x] Лучший (luchshii)
-- [ ] Светлоград (svetlograd)
+- [x] Светлоград (svetlograd)
 - [ ] Свобода (svoboda)
 - [ ] Акварели 2 (akvareli-2)
 - [ ] Краски (kraski)
