@@ -137,7 +137,7 @@ def main():
         return
     os.makedirs(OUT, exist_ok=True)
     os.makedirs(COVERS, exist_ok=True)
-    rows = []
+    rows, missing = [], []
     for fn in sorted(os.listdir(SRC)):
         if not fn.endswith(".md"):
             continue
@@ -151,11 +151,20 @@ def main():
         html = build.md_to_html(body)
         cover = os.path.join(COVERS, slug + ".jpg")
         make_cover(slug, meta.get("title", slug), meta.get("category", "Статьи"), cover)
-        cover_url = f"{build.BASE}/covers/{slug}.jpg"
+        # Тильда при импорте принимает только ссылки на картинки, уже загруженные в Тильду
+        # (static.tildacdn.com). Ссылки на блог она игнорирует, поэтому обложку сначала загружают
+        # в Тильду, а её адрес пишут в поле tilda_cover статьи.
+        tcover = meta.get("tilda_cover", "").strip()
+        if tcover and "tildacdn" not in tcover:
+            print(f"! {fn}: tilda_cover должен быть ссылкой tildacdn — пропускаю", file=sys.stderr)
+            tcover = ""
+        if not tcover:
+            missing.append(slug)
         rows.append([
-            post_id(slug), slug, meta.get("title", slug), meta.get("category", ""), "image", cover_url,
+            post_id(slug), slug, meta.get("title", slug), meta.get("category", ""),
+            "image" if tcover else "", tcover,
             meta.get("description", ""), json.dumps(html_to_blocks(html), ensure_ascii=False),
-            f"{date} 09:00:00+00:00", "published", cover_url, AUTHOR,
+            f"{date} 09:00:00+00:00", "published", tcover, AUTHOR,
         ])
     buf = io.StringIO()
     w = csv.writer(buf, delimiter=";", quoting=csv.QUOTE_MINIMAL, lineterminator="\n")
@@ -165,13 +174,22 @@ def main():
     with open(os.path.join(OUT, "posts.csv"), "w", encoding="utf-8") as f:
         f.write(buf.getvalue())
     # страница-подсказка со ссылкой на файл
-    lst = "".join(f"<li>{build.esc(r[2])} <span class='muted'>— {MAIN}/{FEED_PATH}/{r[1]}</span></li>" for r in rows)
+    def item(r):
+        cov = f"{build.PREFIX}/covers/{r[1]}.jpg"
+        state = "обложка в CSV есть" if r[5] else "<b>обложку загрузить вручную</b>"
+        return (f"<li>{build.esc(r[2])} <span class='muted'>— {MAIN}/{FEED_PATH}/{r[1]}</span><br>"
+                f"<a href='{cov}' download>Скачать обложку</a> · {state}</li>")
+    lst = "".join(item(r) for r in rows)
+    note = ("<p><b>Про обложки.</b> Тильда при импорте CSV принимает только картинки, уже загруженные в Тильду, "
+            "поэтому обложки с блога сами не подтягиваются. Скачайте обложку, загрузите её в пост "
+            "(«Изображение» и «Изображение в списке») и пришлите ссылку static.tildacdn.com — "
+            "мы пропишем её в статью, и следующие импорты будут приходить уже с обложкой.</p>")
     page = build.layout("Статьи для Тильды — файл импорта", "", "/tilda/",
                         f'<h1>Статьи для Тильда Потоков</h1><p><a class="pill" href="/tilda/posts.csv" download>Скачать posts.csv</a></p>'
-                        f"<p>Тильда → Потоки → поток → меню «…» → «Импортировать посты из CSV». Повторная загрузка обновляет посты, дублей не будет.</p><ol>{lst}</ol>",
+                        f"<p>Тильда → Потоки → поток → меню «…» → «Импортировать посты из CSV». Повторная загрузка обновляет посты, дублей не будет.</p>{note}<ol>{lst}</ol>",
                         noindex=True)
     build.write("/tilda/", page, index=False)
-    print(f"tilda: {len(rows)} постов -> dist/tilda/posts.csv")
+    print(f"tilda: {len(rows)} постов -> dist/tilda/posts.csv; без обложки Тильды: {len(missing)}")
 
 
 if __name__ == "__main__":
