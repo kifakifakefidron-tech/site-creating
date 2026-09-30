@@ -7,7 +7,7 @@
 - [x] Лучший (luchshii)
 - [x] Светлоград (svetlograd)
 - [x] Свобода (svoboda)
-- [ ] Акварели 2 (akvareli-2)
+- [x] Акварели 2 (akvareli-2)
 - [ ] Краски (kraski)
 - [ ] Достояние (dostoyanie)
 - [ ] Самолёт 6 (samolet-6)
