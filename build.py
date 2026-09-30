@@ -932,6 +932,50 @@ def build_houses_csv(objs):
     return len(houses), sum(1 for h in houses.values() if h["year"]), sum(1 for h in houses.values() if h["coords"])
 
 
+def build_direct_feed(objs):
+    """Фид для Яндекс Директа: цены в рублях (в фиде Тильды они в тысячах), понятные названия
+    вида «2-комнатная квартира, 60 м², ЖК Достояние», описание без телефона и цены, метки UTM."""
+    from xml.sax.saxutils import escape as xe
+    cats = [("studiya", "Студии"), ("1k", "1-комнатные квартиры"), ("2k", "2-комнатные квартиры"),
+            ("3k", "3-комнатные квартиры"), ("4k", "Многокомнатные квартиры"), ("dom", "Дома"), ("other", "Другие объекты")]
+    cid = {k: str(i + 1) for i, (k, _) in enumerate(cats)}
+    offers = []
+    for o in objs:
+        url, pics, price = o.get("url"), o.get("pictures") or [], o.get("price")
+        if not url or not pics or not price or not o.get("available", True):
+            continue
+        t = o.get("type") if o.get("type") in TYPES else "other"
+        kind = TYPES[t][1].capitalize() if t in TYPES else "Квартира"
+        where = ("ЖК " + o["zhk_name"]) if o.get("zhk_name") else (("район " + o["district_name"]) if o.get("district_name") else "")
+        name = kind + (f", {o['area']:g} м²" if o.get("area") else "") + (f", {where}" if where else "")
+        facts = []
+        if o.get("district_name"): facts.append("Район: " + o["district_name"])
+        if o.get("address"): facts.append(o["address"])
+        if o.get("floor") and o.get("floors"): facts.append(f"Этаж {o['floor']}/{o['floors']}")
+        if o.get("condition"): facts.append("Состояние: " + o["condition"].lower())
+        if o.get("keys"): facts.append("Ключи у объекта — быстрый показ")
+        if o.get("dkp") and "вся" in o["dkp"].lower(): facts.append("Вся сумма в ДКП")
+        if o.get("encumbrance") and o["encumbrance"].lower().startswith("нет"): facts.append("Без обременений")
+        sep = "&" if "?" in url else "?"
+        u = f"{url}{sep}utm_source=yandex&utm_medium=cpc&utm_campaign=feed&utm_content={o.get('id','')}"
+        pic = "".join(f"<picture>{xe(x)}</picture>" for x in pics[:10])
+        par = ""
+        if o.get("area"): par += f'<param name="Площадь" unit="м²">{o["area"]:g}</param>'
+        if o.get("floor"): par += f'<param name="Этаж">{o["floor"]}</param>'
+        if o.get("zhk_name"): par += f'<param name="Жилой комплекс">{xe(o["zhk_name"])}</param>'
+        if o.get("district_name"): par += f'<param name="Район">{xe(o["district_name"])}</param>'
+        offers.append(f'<offer id="{xe(str(o.get("id")))}" available="true"><url>{xe(u)}</url><price>{int(price)}</price>'
+                      f'<currencyId>RUR</currencyId><categoryId>{cid[t]}</categoryId>{pic}<name>{xe(name)}</name>'
+                      f'<vendor>СТРЕЛЫ</vendor><description>{xe(". ".join(facts))}</description>{par}</offer>')
+    cat_xml = "".join(f'<category id="{cid[k]}">{v}</category>' for k, v in cats)
+    xml = (f'<?xml version="1.0" encoding="UTF-8"?>\n<yml_catalog date="{dt.datetime.now().strftime("%Y-%m-%d %H:%M")}">'
+           f'<shop><name>СТРЕЛЫ</name><company>СТРЕЛЫ</company><url>https://arrowsrealty.ru</url>'
+           f'<currencies><currency id="RUR" rate="1"/></currencies><categories>{cat_xml}</categories>'
+           f'<offers>\n' + "\n".join(offers) + '\n</offers></shop></yml_catalog>\n')
+    with open(os.path.join(DIST, "direct-feed.yml"), "w", encoding="utf-8") as f:
+        f.write(xml)
+    return len(offers)
+
 def main():
     if os.path.isdir(DIST):
         shutil.rmtree(DIST)
@@ -952,10 +996,11 @@ def main():
     build_home(objs, arts, zhk_rows, d_rows)
     build_meta()
     n_h, n_year, n_coords = build_houses_csv(objs)
+    n_direct = build_direct_feed(objs)
     no_type = sum(1 for o in objs if not o.get("type"))
     report = {"date": TODAY.isoformat(), "objects": len(objs), "zhk": len(zhk_rows), "districts": len(d_rows),
               "articles": len(arts), "indexed_pages": len(PAGES), "objects_without_type": no_type,
-              "houses": n_h, "houses_with_year": n_year, "houses_with_coords": n_coords,
+              "direct_feed_offers": n_direct, "houses": n_h, "houses_with_year": n_year, "houses_with_coords": n_coords,
               "objects_without_zhk_or_district": sum(1 for o in objs if not o.get("zhk_name") and not o.get("district_name"))}
     with open(os.path.join(DIST, "build-report.json"), "w", encoding="utf-8") as f:
         json.dump(report, f, ensure_ascii=False, indent=1)
