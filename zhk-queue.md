@@ -8,7 +8,7 @@
 - [x] Светлоград (svetlograd)
 - [x] Свобода (svoboda)
 - [x] Акварели 2 (akvareli-2)
-- [ ] Краски (kraski)
+- [x] Краски (kraski)
 - [ ] Достояние (dostoyanie)
 - [ ] Самолёт 6 (samolet-6)
 - [ ] Самолёт 2 (samolet-2)
