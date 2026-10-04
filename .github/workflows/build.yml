@@ -31,11 +31,37 @@ jobs:
         run: |
           mkdir -p fonts
           curl -sSL -o fonts/Oswald.ttf "https://raw.githubusercontent.com/google/fonts/main/ofl/oswald/Oswald%5Bwght%5D.ttf" || true
+      - name: Адрес блога (свой домен из настроек Pages, если он уже работает)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          url="${{ vars.BASE_URL }}"
+          if [ -z "$url" ]; then
+            cname=$(curl -sS -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+                    "https://api.github.com/repos/${{ github.repository }}/pages" | python3 -c "import json,sys;print(json.load(sys.stdin).get('cname') or '')" || true)
+            if [ -n "$cname" ]; then
+              echo "DNS $cname: $(getent hosts "$cname" | head -3 | tr '\n' ' ')"
+              if curl -sSf -o /dev/null --max-time 20 "https://$cname/"; then
+                url="https://$cname"
+              else
+                echo "::warning::Домен $cname указан в настройках Pages, но по HTTPS ещё не открывается (DNS или сертификат) — пока публикуем на github.io"
+              fi
+            fi
+          fi
+          url="${url:-https://kifakifakefidron-tech.github.io/site-creating}"
+          echo "Адрес блога: $url"
+          echo "BASE_URL=$url" >> "$GITHUB_ENV"
+      - name: Яндекс Вебмастер — добавить сайт и получить код подтверждения
+        env:
+          WEBMASTER_TOKEN: ${{ secrets.WEBMASTER_TOKEN }}
+          METRIKA_TOKEN: ${{ secrets.METRIKA_TOKEN }}
+        run: python webmaster.py prepare || true
       - name: Сборка сайта
         env:
           FEED_URL: ${{ vars.FEED_URL }}
           SHEET_CSV_URL: ${{ vars.SHEET_CSV_URL }}
-          BASE_URL: ${{ vars.BASE_URL || 'https://kifakifakefidron-tech.github.io/site-creating' }}
+          WEBMASTER_TOKEN: ${{ secrets.WEBMASTER_TOKEN }}
+          YANDEX_VERIFICATION: ${{ vars.YANDEX_VERIFICATION }}
           METRIKA_COUNTER: ${{ vars.METRIKA_COUNTER }}
           METRIKA_TOKEN: ${{ secrets.METRIKA_TOKEN }}
           MAIN_COUNTER: ${{ vars.MAIN_COUNTER || '99759284' }}
@@ -59,3 +85,25 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+  webmaster:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Яндекс Вебмастер — подтвердить права и отправить sitemap
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WEBMASTER_TOKEN: ${{ secrets.WEBMASTER_TOKEN }}
+          METRIKA_TOKEN: ${{ secrets.METRIKA_TOKEN }}
+        run: |
+          url="${{ vars.BASE_URL }}"
+          if [ -z "$url" ]; then
+            cname=$(curl -sS -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/${{ github.repository }}/pages" | python3 -c "import json,sys;print(json.load(sys.stdin).get('cname') or '')" || true)
+            [ -n "$cname" ] && curl -sSf -o /dev/null --max-time 20 "https://$cname/" && url="https://$cname"
+          fi
+          [ -z "$url" ] && { echo "Свой домен ещё не подключён — Вебмастер пропускаем"; exit 0; }
+          sleep 60   # дать новой версии сайта разойтись по CDN
+          BASE_URL="$url" python webmaster.py verify || true

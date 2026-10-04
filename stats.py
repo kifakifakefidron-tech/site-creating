@@ -12,6 +12,7 @@
 """
 import datetime as dt, json, os, subprocess, urllib.parse, urllib.request
 import build
+import webmaster
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(build.DIST, "stats")
@@ -121,6 +122,23 @@ def goal_id(counter, identifier="to_main"):
         return None
 
 
+def ensure_mirror():
+    """После переезда на свой домен добавить его в зеркала счётчика блога — иначе фильтр «только мои домены» режет визиты."""
+    host = blog_host()
+    if not (TOKEN and COUNTER) or host.endswith("github.io"):
+        return
+    c = api(f"/management/v1/counter/{COUNTER}", {}).get("counter", {})
+    known = {c.get("site", "")} | {m.get("site", "") for m in (c.get("mirrors2") or [])}
+    if host in known:
+        return
+    mirrors = [{"site": m["site"]} for m in (c.get("mirrors2") or []) if m.get("site")] + [{"site": host}]
+    body = json.dumps({"counter": {"mirrors2": mirrors}}).encode()
+    req = urllib.request.Request(f"https://api-metrika.yandex.net/management/v1/counter/{COUNTER}", data=body, method="PUT",
+                                 headers={"Authorization": "OAuth " + TOKEN, "Content-Type": "application/json"})
+    urllib.request.urlopen(req, timeout=60)
+    print(f"Метрика: домен {host} добавлен в зеркала счётчика блога")
+
+
 def blog_host():
     return urllib.parse.urlparse(build.BASE).netloc
 
@@ -129,6 +147,10 @@ def traffic_stats():
     if not (TOKEN and COUNTER):
         return {"status": "Метрика не подключена: добавьте секрет METRIKA_TOKEN и переменную METRIKA_COUNTER"}
     res = {"status": "ok", "by_period": {}, "top_articles": [], "errors": []}
+    try:
+        ensure_mirror()
+    except Exception as e:
+        res["errors"].append(f"зеркало домена в счётчике (добавьте blog.arrowsrealty.ru в настройках счётчика вручную): {e}")
     gid = None
     try:
         gid = goal_id(COUNTER)
@@ -247,7 +269,26 @@ def diagnostics():
 
 
 # ------------------------------------------------------------------ вывод
-def text_summary(c, t, kind):
+def search_lines(w, kind):
+    """Блок «Поиск Яндекса» из Вебмастера — реальные показы и клики, без cookie."""
+    if not w:
+        return []
+    out = ["", "Поиск Яндекса (Вебмастер):"]
+    if w.get("status") != "ok":
+        return out + [w.get("status", "нет данных")]
+    for k in ("Страниц в поиске Яндекса", "Показы в поиске за 7 дней", "Клики из поиска за 7 дней", "ИКС", "Проблемы сайта"):
+        if w.get(k) is not None:
+            out.append(f"• {k}: {w[k]}")
+    if w.get("Данные по"):
+        out.append(f"(данные Вебмастера по {w['Данные по']})")
+    if kind != "day" and w.get("top_queries"):
+        out.append("Топ запросов за 7 дней (показы / клики / позиция):")
+        for q, sh, cl, pos in w["top_queries"][:7]:
+            out.append(f"• {q} — {sh} / {cl} / {pos}")
+    return out
+
+
+def text_summary(c, t, kind, w=None):
     """kind: day | week | month"""
     p = {"day": "yesterday", "week": "last7", "month": "prev_month"}[kind]       # посещения
     pc = {"day": "today", "week": "week", "month": "prev_month"}[kind]         # сделанный контент
@@ -278,6 +319,7 @@ def text_summary(c, t, kind):
             lines.append("Топ статей за 7 дней:")
             for path, n in t["top_articles"][:5]:
                 lines.append(f"• {path} — {n}")
+    lines += search_lines(w, kind)
     lines.append("")
     lines.append(f"🔗 Блог: {build.BASE}/")
     lines.append(f"📈 Страница отчёта: {build.BASE}/stats/")
@@ -299,9 +341,13 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     c = content_stats()
     t = traffic_stats()
-    data = {"date": TODAY.isoformat(), "content": c, "traffic": t,
-            "summary_day": text_summary(c, t, "day"), "summary_week": text_summary(c, t, "week"),
-            "summary_month": text_summary(c, t, "month")}
+    try:
+        w = webmaster.search_stats()
+    except Exception as e:
+        w = {"status": f"Вебмастер: {e}"}
+    data = {"date": TODAY.isoformat(), "content": c, "traffic": t, "search": w,
+            "summary_day": text_summary(c, t, "day", w), "summary_week": text_summary(c, t, "week", w),
+            "summary_month": text_summary(c, t, "month", w)}
     with open(os.path.join(OUT, "stats.json"), "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=1)
     cols = ["today", "yesterday", "last7", "month_to_date", "prev_month"]
@@ -311,6 +357,7 @@ def main():
 <p class="muted">Обновлено {TODAY.strftime('%d.%m.%Y')}. Контент — по дате появления в репозитории, посещения — Яндекс Метрика.</p>
 <h2>Всего</h2><table class="stats">{total_rows}</table>
 {html_table('Сделано за период', c['by_period'], cols)}
+{'<h2>Поиск Яндекса (Вебмастер)</h2><pre style="white-space:pre-wrap">' + build.esc(chr(10).join(search_lines(w, 'week')[2:])) + '</pre>'}
 {html_table('Посещения', t['by_period'], cols) if t.get('status') == 'ok' else '<h2>Посещения</h2><p>' + build.esc(t.get('status', '')) + '</p>'}
 {('<h2>Топ статей за 7 дней</h2><ol>' + ''.join(f'<li>{build.esc(p)} — {n}</li>' for p, n in t.get('top_articles', [])) + '</ol>') if t.get('top_articles') else ''}
 <style>.stats{{border-collapse:collapse;min-width:420px}}.stats td,.stats th{{border:1px solid var(--line);padding:8px 12px;text-align:left}}.stats th{{font-family:Oswald,sans-serif;text-transform:uppercase;font-size:13px;letter-spacing:.08em}}</style>"""

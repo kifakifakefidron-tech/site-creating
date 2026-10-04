@@ -64,6 +64,19 @@ if(window.arwConsent==="yes")window.arwLoadStats();
 </script>"""
 
 
+def yandex_verification():
+    """Код подтверждения прав в Яндекс Вебмастере: из переменной YANDEX_VERIFICATION или из .webmaster.json (webmaster.py prepare)."""
+    v = os.environ.get("YANDEX_VERIFICATION", "").strip()
+    if not v:
+        try:
+            v = json.load(open(os.path.join(ROOT, ".webmaster.json"), encoding="utf-8")).get("verification_uin", "")
+        except Exception:
+            v = ""
+    m = re.search(r'content="([^"]+)"', v)   # можно вставить мета-тег целиком
+    v = m.group(1) if m else v
+    return f'<meta name="yandex-verification" content="{esc(v)}">' if re.fullmatch(r"[\w-]{6,64}", v or "") else ""
+
+
 def logo_html():
     for fn in ["logo.svg", "logo.png", "logo.webp", "logo.jpg"]:
         if os.path.exists(os.path.join(ROOT, "static", fn)):
@@ -461,6 +474,7 @@ def layout(title, description, path, body, crumbs=None, jsonld=None, noindex=Fal
 <title>{esc(title)}</title>
 <meta name="description" content="{esc(description)}">
 <link rel="canonical" href="{url}">
+{yandex_verification()}
 {'<meta name="robots" content="noindex, follow">' if noindex else ''}
 <meta property="og:type" content="website">
 <meta property="og:title" content="{esc(title)}">
