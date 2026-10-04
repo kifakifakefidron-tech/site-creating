@@ -17,7 +17,7 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 STATE = os.path.join(ROOT, ".webmaster.json")
 API = "https://api.webmaster.yandex.net/v4"
 TOKEN = (os.environ.get("WEBMASTER_TOKEN") or os.environ.get("METRIKA_TOKEN") or "").strip()
-BASE = (os.environ.get("BASE_URL") or "https://blog.arrowsrealty.ru").rstrip("/")
+BASE = (os.environ.get("BASE_URL") or "https://vtorichka-krd23.ru").rstrip("/")
 MSK = dt.timezone(dt.timedelta(hours=3))
 TODAY = dt.datetime.now(MSK).date()
 

@@ -150,7 +150,7 @@ def traffic_stats():
     try:
         ensure_mirror()
     except Exception as e:
-        res["errors"].append(f"зеркало домена в счётчике (добавьте blog.arrowsrealty.ru в настройках счётчика вручную): {e}")
+        res["errors"].append(f"зеркало домена в счётчике (добавьте vtorichka-krd23.ru в настройках счётчика вручную): {e}")
     gid = None
     try:
         gid = goal_id(COUNTER)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Генератор blog.arrowsrealty.ru (СТРЕЛЫ).
+Генератор vtorichka-krd23.ru (СТРЕЛЫ).
 
 Что делает:
   1. Забирает объекты из YML-фида Тильды (FEED_URL) и, если задано, из Google-таблицы (SHEET_CSV_URL).
@@ -22,7 +22,7 @@ except ImportError:  # pragma: no cover
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 DIST = os.path.join(ROOT, "dist")
-BASE = (os.environ.get("BASE_URL") or "https://blog.arrowsrealty.ru").rstrip("/")
+BASE = (os.environ.get("BASE_URL") or "https://vtorichka-krd23.ru").rstrip("/")
 PREFIX = re.sub(r"^https?://[^/]+", "", BASE)   # для адреса вида github.io/site-creating
 MAIN = "https://arrowsrealty.ru"
 BRAND = "СТРЕЛЫ"

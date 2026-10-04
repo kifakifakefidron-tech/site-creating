@@ -41,10 +41,12 @@ jobs:
                     "https://api.github.com/repos/${{ github.repository }}/pages" | python3 -c "import json,sys;print(json.load(sys.stdin).get('cname') or '')" || true)
             if [ -n "$cname" ]; then
               echo "DNS $cname: $(getent hosts "$cname" | head -3 | tr '\n' ' ')"
-              if curl -sSf -o /dev/null --max-time 20 "https://$cname/"; then
+              # домен указан в Pages → GitHub уже перенаправляет github.io на него, поэтому собираем под домен,
+              # как только DNS смотрит на GitHub (сертификат HTTPS GitHub выпустит сам)
+              if getent hosts "$cname" | grep -qE '185\.199\.(108|109|110|111)\.153'; then
                 url="https://$cname"
               else
-                echo "::warning::Домен $cname указан в настройках Pages, но по HTTPS ещё не открывается (DNS или сертификат) — пока публикуем на github.io"
+                echo "::warning::Домен $cname указан в настройках Pages, но DNS ещё не указывает на GitHub — пока собираем под github.io"
               fi
             fi
           fi
@@ -102,7 +104,7 @@ jobs:
           url="${{ vars.BASE_URL }}"
           if [ -z "$url" ]; then
             cname=$(curl -sS -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/${{ github.repository }}/pages" | python3 -c "import json,sys;print(json.load(sys.stdin).get('cname') or '')" || true)
-            [ -n "$cname" ] && curl -sSf -o /dev/null --max-time 20 "https://$cname/" && url="https://$cname"
+            [ -n "$cname" ] && getent hosts "$cname" | grep -qE '185\.199\.(108|109|110|111)\.153' && url="https://$cname"
           fi
           [ -z "$url" ] && { echo "Свой домен ещё не подключён — Вебмастер пропускаем"; exit 0; }
           sleep 60   # дать новой версии сайта разойтись по CDN

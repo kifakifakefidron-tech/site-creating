@@ -1,4 +1,4 @@
-# Блог СТРЕЛЫ — blog.arrowsrealty.ru
+# Блог СТРЕЛЫ — vtorichka-krd23.ru
 
 Автоматический сайт-спутник arrowsrealty.ru: страницы по ЖК, районам, типам квартир и бюджетам из фида Тильды + статьи.
 
@@ -8,15 +8,15 @@
 - **По понедельникам и четвергам** Claude пишет статью для основного сайта (Тильда Потоки). Все такие статьи собираются в файл `/tilda/posts.csv` на сайте блога — раз в неделю скачайте его и загрузите в Тильду: Потоки → меню потока → «Импортировать посты из CSV». Повторная загрузка обновляет посты, дублей не будет.
 
 ## Разовая настройка
-1. Settings → Pages → Build and deployment → Source: **GitHub Actions**. Затем Actions → «Сборка и публикация блога» → **Run workflow**. Сайт откроется по адресу `https://kifakifakefidron-tech.github.io/site-creating/` (после шага 3 — https://blog.arrowsrealty.ru).
+1. Settings → Pages → Build and deployment → Source: **GitHub Actions**. Затем Actions → «Сборка и публикация блога» → **Run workflow**. Сайт откроется по адресу `https://kifakifakefidron-tech.github.io/site-creating/` (после шага 3 — https://vtorichka-krd23.ru).
 2. Фид уже прописан в `build.py`. Переменные (Settings → Secrets and variables → Actions → Variables) нужны только чтобы что-то поменять:
    - `FEED_URL` — другая ссылка на YML-фид;
    - `SHEET_CSV_URL` — Google-таблица в CSV (необязательно; строки без ссылки на карточку добавляются как отдельные объекты);
    - `BASE_URL` — задавать не нужно: адрес берётся сам из Settings → Pages → Custom domain, как только домен открывается по HTTPS.
-3. **Домен blog.arrowsrealty.ru.** У регистратора/в DNS домена arrowsrealty.ru добавить запись **CNAME**: имя `blog`, значение `kifakifakefidron-tech.github.io.` Через 15–60 минут: Settings → Pages → Custom domain → `blog.arrowsrealty.ru` → Save, дождаться зелёной галочки DNS и включить **Enforce HTTPS** (сертификат выпускается до суток). Затем Actions → «Сборка и публикация блога» → **Run workflow** — сборка сама перейдёт на новый адрес, старые ссылки github.io будут перенаправляться.
-4. **Яндекс Вебмастер — автоматически.** На oauth.yandex.ru создать приложение (платформа «Веб-сервисы», Redirect URI `https://oauth.yandex.ru/verification_code`, права **webmaster:hostinfo** и **webmaster:verify**), открыть `https://oauth.yandex.ru/authorize?response_type=token&client_id=<ClientID>` и скопировать токен в секрет репозитория **`WEBMASTER_TOKEN`**. Дальше сборка сама добавит blog.arrowsrealty.ru в Вебмастер, подтвердит права мета-тегом, отправит sitemap, а сводка покажет показы и клики из поиска Яндекса. Токен действует 6 месяцев.
-5. Метрика блога: секрет `METRIKA_TOKEN` и переменная `METRIKA_COUNTER` (номер счётчика или код целиком). После переезда на домен добавьте `blog.arrowsrealty.ru` в настройки счётчика («Адрес сайта» / зеркала), иначе фильтр «только мои домены» отбросит визиты.
-6. На arrowsrealty.ru: пункт меню «Новости» → переименовать в «Блог» и поставить ссылку на blog.arrowsrealty.ru.
+3. **Домен vtorichka-krd23.ru** (куплен на REG.RU). В REG.RU → Домены → vtorichka-krd23.ru → «DNS-серверы и управление зоной»: четыре записи **A** для `@` — `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153` — и **CNAME** `www` → `kifakifakefidron-tech.github.io.` (старые A/CNAME-записи заглушки REG.RU удалить). В GitHub: Settings → Pages → Custom domain → `vtorichka-krd23.ru` → Save; когда проверка DNS пройдёт — включить **Enforce HTTPS**. Сборка сама перейдёт на домен, как только DNS начнёт указывать на GitHub; ссылки github.io перенаправляются.
+4. **Яндекс Вебмастер — автоматически.** На oauth.yandex.ru создать приложение (платформа «Веб-сервисы», Redirect URI `https://oauth.yandex.ru/verification_code`, права **webmaster:hostinfo** и **webmaster:verify**), открыть `https://oauth.yandex.ru/authorize?response_type=token&client_id=<ClientID>` и скопировать токен в секрет репозитория **`WEBMASTER_TOKEN`**. Дальше сборка сама добавит vtorichka-krd23.ru в Вебмастер, подтвердит права мета-тегом, отправит sitemap, а сводка покажет показы и клики из поиска Яндекса. Токен действует 6 месяцев.
+5. Метрика блога: секрет `METRIKA_TOKEN` и переменная `METRIKA_COUNTER` (номер счётчика или код целиком). После переезда на домен добавьте `vtorichka-krd23.ru` в настройки счётчика («Адрес сайта» / зеркала), иначе фильтр «только мои домены» отбросит визиты.
+6. На arrowsrealty.ru: пункт меню «Новости» → переименовать в «Блог» и поставить ссылку на vtorichka-krd23.ru.
 
 ## Логотип
 Положите файл `static/logo.svg` (или `logo.png`) — он заменит текстовый логотип в шапке автоматически.
