@@ -222,6 +222,20 @@ def diagnostics():
                 d["sections_30d"] = [(x["dimensions"][0]["name"], int(x["metrics"][0])) for x in r.get("data", [])]
             except Exception as e:
                 d["sections_error"] = str(e)[:300]
+            for label, (x1, x2) in {"src_before": (TODAY - dt.timedelta(days=22), TODAY - dt.timedelta(days=9)),
+                                    "src_after": (TODAY - dt.timedelta(days=8), TODAY - dt.timedelta(days=1))}.items():
+                try:
+                    r = api("/stat/v1/data", {"ids": cid, "metrics": "ym:s:visits", "dimensions": "ym:s:lastTrafficSource",
+                                              "date1": x1.isoformat(), "date2": x2.isoformat(), "limit": 10})
+                    d[label] = [x1.isoformat(), x2.isoformat()] + [(x["dimensions"][0]["name"], int(x["metrics"][0])) for x in r.get("data", [])]
+                except Exception as e:
+                    d[label + "_error"] = str(e)[:300]
+                try:
+                    r = api("/stat/v1/data", {"ids": cid, "metrics": "ym:s:visits", "dimensions": "ym:s:deviceCategory",
+                                              "date1": x1.isoformat(), "date2": x2.isoformat(), "limit": 5})
+                    d[label + "_device"] = [(x["dimensions"][0]["name"], int(x["metrics"][0])) for x in r.get("data", [])]
+                except Exception as e:
+                    d[label + "_device_error"] = str(e)[:300]
             try:
                 r = api("/stat/v1/data", {"ids": cid, "metrics": "ym:s:visits", "dimensions": "ym:s:refererDomain",
                                           "date1": a.isoformat(), "date2": b.isoformat(), "limit": 15, "sort": "-ym:s:visits"})
