@@ -127,8 +127,8 @@ def ensure_mirror():
     host = blog_host()
     if not (TOKEN and COUNTER) or host.endswith("github.io"):
         return
-    c = api(f"/management/v1/counter/{COUNTER}", {}).get("counter", {})
-    known = {c.get("site", "")} | {m.get("site", "") for m in (c.get("mirrors2") or [])}
+    c = api(f"/management/v1/counter/{COUNTER}", {"field": "mirrors"}).get("counter", {})
+    known = {c.get("site", "")} | {m.get("site", "") for m in (c.get("mirrors2") or [])} | set(c.get("mirrors") or [])
     if host in known:
         return
     mirrors = [{"site": m["site"]} for m in (c.get("mirrors2") or []) if m.get("site")] + [{"site": host}]
@@ -212,8 +212,8 @@ def diagnostics():
     for name, cid in (("blog", COUNTER), ("main", MAIN_COUNTER)):
         d = {}
         try:
-            c = api(f"/management/v1/counter/{cid}", {}).get("counter", {})
-            d["counter"] = {k: c.get(k) for k in ("id", "name", "site", "site2", "mirrors2", "status", "code_status",
+            c = api(f"/management/v1/counter/{cid}", {"field": "mirrors"}).get("counter", {})
+            d["counter"] = {k: c.get(k) for k in ("id", "name", "site", "site2", "mirrors", "mirrors2", "status", "code_status",
                                                   "filter_robots", "permission", "owner_login", "create_time")}
         except Exception as e:
             d["counter_error"] = str(e)[:300]
