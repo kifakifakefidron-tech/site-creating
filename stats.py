@@ -176,6 +176,51 @@ def traffic_stats():
     return res
 
 
+def diagnostics():
+    """Почему посещения могут быть нулевыми: настройки счётчиков и откуда реально приходят данные."""
+    if not (TOKEN and COUNTER):
+        return {}
+    res = {}
+    a, b = TODAY - dt.timedelta(days=30), TODAY - dt.timedelta(days=1)
+    for name, cid in (("blog", COUNTER), ("main", MAIN_COUNTER)):
+        d = {}
+        try:
+            c = api(f"/management/v1/counter/{cid}", {"field": "mirrors2"}).get("counter", {})
+            d["counter"] = {k: c.get(k) for k in ("id", "name", "site", "site2", "mirrors2", "status", "code_status",
+                                                  "filter_robots", "permission", "owner_login", "create_time")}
+        except Exception as e:
+            d["counter_error"] = str(e)[:300]
+        try:
+            d["filters"] = api(f"/management/v1/counter/{cid}/filters", {}).get("filters", [])
+        except Exception as e:
+            d["filters_error"] = str(e)[:300]
+        try:
+            d["visits_30d"] = total(cid, "ym:s:visits", a, b)
+        except Exception as e:
+            d["visits_error"] = str(e)[:300]
+        try:
+            r = api("/stat/v1/data", {"ids": cid, "metrics": "ym:pv:pageviews", "dimensions": "ym:pv:URLDomain",
+                                      "date1": a.isoformat(), "date2": b.isoformat(), "limit": 10, "sort": "-ym:pv:pageviews"})
+            d["domains_30d"] = [(x["dimensions"][0]["name"], int(x["metrics"][0])) for x in r.get("data", [])]
+        except Exception as e:
+            d["domains_error"] = str(e)[:300]
+        if name == "main":
+            try:
+                r = api("/stat/v1/data", {"ids": cid, "metrics": "ym:pv:pageviews", "dimensions": "ym:pv:URLPathLevel1",
+                                          "date1": a.isoformat(), "date2": b.isoformat(), "limit": 15, "sort": "-ym:pv:pageviews"})
+                d["sections_30d"] = [(x["dimensions"][0]["name"], int(x["metrics"][0])) for x in r.get("data", [])]
+            except Exception as e:
+                d["sections_error"] = str(e)[:300]
+            try:
+                r = api("/stat/v1/data", {"ids": cid, "metrics": "ym:s:visits", "dimensions": "ym:s:refererDomain",
+                                          "date1": a.isoformat(), "date2": b.isoformat(), "limit": 15, "sort": "-ym:s:visits"})
+                d["referers_30d"] = [(x["dimensions"][0]["name"], int(x["metrics"][0])) for x in r.get("data", [])]
+            except Exception as e:
+                d["referers_error"] = str(e)[:300]
+        res[name] = d
+    return res
+
+
 # ------------------------------------------------------------------ вывод
 def text_summary(c, t, kind):
     """kind: day | week | month"""
@@ -242,6 +287,12 @@ def main():
     print(data["summary_day"])
     if t.get("errors"):
         print("Метрика, ошибки:", t["errors"][:5])
+    try:
+        diag = diagnostics()
+    except Exception as e:
+        diag = {"error": str(e)[:300]}
+    if diag:
+        print("Метрика, диагностика:", json.dumps(diag, ensure_ascii=False))
 
 
 if __name__ == "__main__":
