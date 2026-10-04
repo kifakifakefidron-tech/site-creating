@@ -155,13 +155,18 @@ def traffic_stats():
             except Exception as e:
                 res["errors"].append(f"цель {p}: {e}")
         try:
+            (mv,) = total(MAIN_COUNTER, "ym:s:visits", a, b)
+            row["Визиты arrowsrealty.ru всего (для сравнения)"] = mv
+        except Exception as e:
+            res["errors"].append(f"основной сайт всего {p}: {e}")
+        try:
             (m,) = total(MAIN_COUNTER, "ym:s:visits", a, b, f"ym:s:referer=@'{blog_host()}'")
             row["Визиты на arrowsrealty.ru из блога"] = m
         except Exception as e:
             res["errors"].append(f"основной сайт {p}: {e}")
         try:
-            (tp,) = total(MAIN_COUNTER, "ym:pv:pageviews", a, b, "ym:pv:URLPath=@'/news/'")
-            row["Просмотры статей в Потоках (arrowsrealty.ru/news)"] = tp
+            (tp,) = total(MAIN_COUNTER, "ym:pv:pageviews", a, b, "ym:pv:URLPath=@'/tpost/' OR ym:pv:URLPath=@'/news'")
+            row["Просмотры статей в Потоках (arrowsrealty.ru/tpost, /news)"] = tp
         except Exception as e:
             res["errors"].append(f"потоки {p}: {e}")
         res["by_period"][p] = row
@@ -185,7 +190,7 @@ def diagnostics():
     for name, cid in (("blog", COUNTER), ("main", MAIN_COUNTER)):
         d = {}
         try:
-            c = api(f"/management/v1/counter/{cid}", {"field": "mirrors2"}).get("counter", {})
+            c = api(f"/management/v1/counter/{cid}", {}).get("counter", {})
             d["counter"] = {k: c.get(k) for k in ("id", "name", "site", "site2", "mirrors2", "status", "code_status",
                                                   "filter_robots", "permission", "owner_login", "create_time")}
         except Exception as e:
@@ -204,9 +209,15 @@ def diagnostics():
             d["domains_30d"] = [(x["dimensions"][0]["name"], int(x["metrics"][0])) for x in r.get("data", [])]
         except Exception as e:
             d["domains_error"] = str(e)[:300]
+        try:
+            r = api("/stat/v1/data", {"ids": cid, "metrics": "ym:s:visits", "dimensions": "ym:s:date",
+                                      "date1": a.isoformat(), "date2": b.isoformat(), "limit": 31, "sort": "ym:s:date"})
+            d["visits_by_day"] = [(x["dimensions"][0]["name"], int(x["metrics"][0])) for x in r.get("data", [])]
+        except Exception as e:
+            d["by_day_error"] = str(e)[:300]
         if name == "main":
             try:
-                r = api("/stat/v1/data", {"ids": cid, "metrics": "ym:pv:pageviews", "dimensions": "ym:pv:URLPathLevel1",
+                r = api("/stat/v1/data", {"ids": cid, "metrics": "ym:pv:pageviews", "dimensions": "ym:pv:URLPathLevel2",
                                           "date1": a.isoformat(), "date2": b.isoformat(), "limit": 15, "sort": "-ym:pv:pageviews"})
                 d["sections_30d"] = [(x["dimensions"][0]["name"], int(x["metrics"][0])) for x in r.get("data", [])]
             except Exception as e:
@@ -242,6 +253,12 @@ def text_summary(c, t, kind):
         lines.append({"day": "Посещения за вчера:", "week": "Посещения за 7 дней:", "month": "Посещения за прошлый месяц:"}[kind])
         for k, v in t["by_period"].get(p, {}).items():
             lines.append(f"• {k}: {v}")
+        if kind == "day":
+            w = t["by_period"].get("last7", {})
+            mo = t["by_period"].get("month_to_date", {})
+            lines.append(f"За 7 дней: визиты блога — {w.get('Визиты блога', '—')}, просмотры статей — {w.get('Просмотры статей', '—')}; "
+                         f"с начала месяца визитов блога — {mo.get('Визиты блога', '—')}")
+        lines.append("ℹ️ Метрика блога считает только посетителей, нажавших «Принять» в cookie-баннере, — реальных визитов больше.")
         if kind != "day" and t.get("top_articles"):
             lines.append("")
             lines.append("Топ статей за 7 дней:")
