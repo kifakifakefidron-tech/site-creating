@@ -10,7 +10,7 @@
 - [x] Акварели 2 (akvareli-2)
 - [x] Краски (kraski)
 - [x] Достояние (dostoyanie)
-- [ ] Самолёт 6 (samolet-6)
+- [x] Самолёт 6 (samolet-6)
 - [ ] Самолёт 2 (samolet-2)
 - [ ] Самолёт 1 (samolet-1)
 - [ ] Отражение (otrazhenie)
