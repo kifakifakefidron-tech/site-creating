@@ -12,7 +12,7 @@
 - [x] Достояние (dostoyanie)
 - [x] Самолёт 6 (samolet-6)
 - [x] Самолёт 2 (samolet-2)
-- [ ] Самолёт 1 (samolet-1)
+- [x] Самолёт 1 (samolet-1)
 - [ ] Отражение (otrazhenie)
 - [ ] Парк Победы (park-pobedi)
 - [ ] Славянка (slavyanka)
