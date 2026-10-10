@@ -13,7 +13,7 @@
 - [x] Самолёт 6 (samolet-6)
 - [x] Самолёт 2 (samolet-2)
 - [x] Самолёт 1 (samolet-1)
-- [ ] Отражение (otrazhenie)
+- [x] Отражение (otrazhenie)
 - [ ] Парк Победы (park-pobedi)
 - [ ] Славянка (slavyanka)
 - [ ] Дыхание (dihanie)
