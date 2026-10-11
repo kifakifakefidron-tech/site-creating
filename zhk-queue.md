@@ -14,7 +14,7 @@
 - [x] Самолёт 2 (samolet-2)
 - [x] Самолёт 1 (samolet-1)
 - [x] Отражение (otrazhenie)
-- [ ] Парк Победы (park-pobedi)
+- [x] Парк Победы (park-pobedi)
 - [ ] Славянка (slavyanka)
 - [ ] Дыхание (dihanie)
 - [ ] Московский (moskovskii)
