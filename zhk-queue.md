@@ -16,7 +16,7 @@
 - [x] Отражение (otrazhenie)
 - [x] Парк Победы (park-pobedi)
 - [x] Славянка (slavyanka)
-- [ ] Дыхание (dihanie)
+- [x] Дыхание (dihanie)
 - [ ] Московский (moskovskii)
 - [ ] Любимово (lyubimovo)
 - [ ] Зелёный театр (zelyonii-teatr)
