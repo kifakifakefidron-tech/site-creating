@@ -17,7 +17,7 @@
 - [x] Парк Победы (park-pobedi)
 - [x] Славянка (slavyanka)
 - [x] Дыхание (dihanie)
-- [ ] Московский (moskovskii)
+- [x] Московский (moskovskii)
 - [ ] Любимово (lyubimovo)
 - [ ] Зелёный театр (zelyonii-teatr)
 - [ ] Образцово (obraztsovo)
