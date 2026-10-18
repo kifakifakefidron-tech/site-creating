@@ -18,7 +18,7 @@
 - [x] Славянка (slavyanka)
 - [x] Дыхание (dihanie)
 - [x] Московский (moskovskii)
-- [ ] Любимово (lyubimovo)
+- [x] Любимово (lyubimovo)
 - [ ] Зелёный театр (zelyonii-teatr)
 - [ ] Образцово (obraztsovo)
 - [ ] Оникс (oniks)
