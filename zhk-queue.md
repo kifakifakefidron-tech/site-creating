@@ -19,7 +19,7 @@
 - [x] Дыхание (dihanie)
 - [x] Московский (moskovskii)
 - [x] Любимово (lyubimovo)
-- [ ] Зелёный театр (zelyonii-teatr)
+- [x] Зелёный театр (zelenii-teatr)
 - [ ] Образцово (obraztsovo)
 - [ ] Оникс (oniks)
 - [ ] Самолёт 4 (samolet-4)
