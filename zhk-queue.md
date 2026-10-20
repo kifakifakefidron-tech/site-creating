@@ -20,7 +20,7 @@
 - [x] Московский (moskovskii)
 - [x] Любимово (lyubimovo)
 - [x] Зелёный театр (zelenii-teatr)
-- [ ] Образцово (obraztsovo)
+- [x] Образцово (obraztsovo)
 - [ ] Оникс (oniks)
 - [ ] Самолёт 4 (samolet-4)
 - [ ] Самолёт 3 (samolet-3)
