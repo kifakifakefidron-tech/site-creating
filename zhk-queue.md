@@ -21,7 +21,7 @@
 - [x] Любимово (lyubimovo)
 - [x] Зелёный театр (zelenii-teatr)
 - [x] Образцово (obraztsovo)
-- [ ] Оникс (oniks)
+- [x] Оникс (oniks)
 - [ ] Самолёт 4 (samolet-4)
 - [ ] Самолёт 3 (samolet-3)
 - [ ] Любимый дом (lyubimii-dom)
