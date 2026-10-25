@@ -22,7 +22,7 @@
 - [x] Зелёный театр (zelenii-teatr)
 - [x] Образцово (obraztsovo)
 - [x] Оникс (oniks)
-- [ ] Самолёт 4 (samolet-4)
+- [x] Самолёт 4 (samolet-4)
 - [ ] Самолёт 3 (samolet-3)
 - [ ] Любимый дом (lyubimii-dom)
 - [ ] Абрикосово (abrikosovo)
