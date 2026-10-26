@@ -23,7 +23,7 @@
 - [x] Образцово (obraztsovo)
 - [x] Оникс (oniks)
 - [x] Самолёт 4 (samolet-4)
-- [ ] Самолёт 3 (samolet-3)
+- [x] Самолёт 3 (samolet-3)
 - [ ] Любимый дом (lyubimii-dom)
 - [ ] Абрикосово (abrikosovo)
 - [ ] Дружный (druzhnii)
