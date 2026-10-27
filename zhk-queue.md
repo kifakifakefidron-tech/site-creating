@@ -24,7 +24,7 @@
 - [x] Оникс (oniks)
 - [x] Самолёт 4 (samolet-4)
 - [x] Самолёт 3 (samolet-3)
-- [ ] Любимый дом (lyubimii-dom)
+- [x] Любимый дом (lyubimii-dom)
 - [ ] Абрикосово (abrikosovo)
 - [ ] Дружный (druzhnii)
 - [ ] Победный (pobednii)
