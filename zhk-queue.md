@@ -25,7 +25,7 @@
 - [x] Самолёт 4 (samolet-4)
 - [x] Самолёт 3 (samolet-3)
 - [x] Любимый дом (lyubimii-dom)
-- [ ] Абрикосово (abrikosovo)
+- [x] Абрикосово (abrikosovo)
 - [ ] Дружный (druzhnii)
 - [ ] Победный (pobednii)
 - [ ] Новелла (novella)
