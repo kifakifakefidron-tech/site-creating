@@ -26,7 +26,7 @@
 - [x] Самолёт 3 (samolet-3)
 - [x] Любимый дом (lyubimii-dom)
 - [x] Абрикосово (abrikosovo)
-- [ ] Дружный (druzhnii)
+- [x] Дружный (druzhnii)
 - [ ] Победный (pobednii)
 - [ ] Новелла (novella)
 - [ ] Элегант (elegant)
