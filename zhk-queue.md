@@ -27,7 +27,7 @@
 - [x] Любимый дом (lyubimii-dom)
 - [x] Абрикосово (abrikosovo)
 - [x] Дружный (druzhnii)
-- [ ] Победный (pobednii)
+- [x] Победный (pobednii)
 - [ ] Новелла (novella)
 - [ ] Элегант (elegant)
 - [ ] Фонтаны (fontani)
