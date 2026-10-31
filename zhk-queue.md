@@ -28,7 +28,7 @@
 - [x] Абрикосово (abrikosovo)
 - [x] Дружный (druzhnii)
 - [x] Победный (pobednii)
-- [ ] Новелла (novella)
+- [x] Новелла (novella)
 - [ ] Элегант (elegant)
 - [ ] Фонтаны (fontani)
 - [ ] Зеленодар (zelenodar)
