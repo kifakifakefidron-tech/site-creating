@@ -29,7 +29,7 @@
 - [x] Дружный (druzhnii)
 - [x] Победный (pobednii)
 - [x] Новелла (novella)
-- [ ] Элегант (elegant)
+- [x] Элегант (elegant)
 - [ ] Фонтаны (fontani)
 - [ ] Зеленодар (zelenodar)
 - [ ] Гарантия на Обрывной (garantiya-na-obrivnoi)
