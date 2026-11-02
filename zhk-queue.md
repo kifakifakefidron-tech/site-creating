@@ -30,6 +30,6 @@
 - [x] Победный (pobednii)
 - [x] Новелла (novella)
 - [x] Элегант (elegant)
-- [ ] Фонтаны (fontani)
+- [x] Фонтаны (fontani)
 - [ ] Зеленодар (zelenodar)
 - [ ] Гарантия на Обрывной (garantiya-na-obrivnoi)
