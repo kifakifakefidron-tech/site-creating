@@ -31,5 +31,5 @@
 - [x] Новелла (novella)
 - [x] Элегант (elegant)
 - [x] Фонтаны (fontani)
-- [ ] Зеленодар (zelenodar)
+- [x] Зеленодар (zelenodar)
 - [ ] Гарантия на Обрывной (garantiya-na-obrivnoi)
