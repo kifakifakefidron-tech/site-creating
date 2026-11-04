@@ -32,4 +32,4 @@
 - [x] Элегант (elegant)
 - [x] Фонтаны (fontani)
 - [x] Зеленодар (zelenodar)
-- [ ] Гарантия на Обрывной (garantiya-na-obrivnoi)
+- [x] Гарантия на Обрывной (garantiya-na-obrivnoi)
