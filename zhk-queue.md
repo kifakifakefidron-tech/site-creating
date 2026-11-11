@@ -39,7 +39,7 @@
 - [x] На Красных Партизан 2 (na-krasnih-partizan-2)
 - [x] Губернский (gubernskii) 2026-11-09
 - [x] Россинский парк (rossinskii-park) 2026-11-10
-- [ ] Кремлёвские ворота (kremlevskie-vorota)
+- [x] Кремлёвские ворота (kremlevskie-vorota) 2026-11-11
 - [ ] Времена года 2 (vremena-goda-2)
 - [ ] Счастье (schaste)
 - [ ] Альфа кино (alfa-kino)
