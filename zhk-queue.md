@@ -40,6 +40,6 @@
 - [x] Губернский (gubernskii) 2026-11-09
 - [x] Россинский парк (rossinskii-park) 2026-11-10
 - [x] Кремлёвские ворота (kremlevskie-vorota) 2026-11-11
-- [ ] Времена года 2 (vremena-goda-2)
+- [x] Времена года 2 (vremena-goda-2)
 - [ ] Счастье (schaste)
 - [ ] Альфа кино (alfa-kino)
